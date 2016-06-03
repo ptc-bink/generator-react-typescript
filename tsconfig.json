@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "rootDir": "generators",
+        "outDir": "generators",
+        "listFiles": true,
+        "allowJs": true
+    },
+    "filesGlob": [
+        "generators/**/*.ts",
+        "typings/index.d.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

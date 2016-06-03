@@ -4,10 +4,11 @@
   "description": "Yeoman generator for ReactJS, Webpack and Typescript",
   "main": "generators/app/index.js",
   "scripts": {
+    "build": "tsc -p .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
-    "generators"    
+    "generators"
   ],
   "keywords": [
     "yeoman-generator",
@@ -21,5 +22,8 @@
   "dependencies": {
     "lodash": "^4.13.1",
     "yeoman-generator": "^0.23.3"
+  },
+  "devDependencies": {
+    "typings": "^1.0.4"
   }
 }
