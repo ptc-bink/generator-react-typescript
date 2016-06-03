@@ -23,7 +23,7 @@ declare namespace yo {
         runHooks(callback?: Function): void;
         sourceRoot(rootPath?: string): string;
         templatePath(...path: string[]): string;
-        prompt(opt: IPromptOptions | IPromptOptions[], callback: (answers: any) => void): void;
+        prompt(opt: IPromptOptions | IPromptOptions[]): Promise<any>;
         npmInstall(packages?: string[] | string, options?: any, cb?: Function): void;
         installDependencies(options?: IInstallDependencyOptions): void;
         spawnCommand(name: string, args?: string[], options?: Object): void;
@@ -61,7 +61,7 @@ declare namespace yo {
         listenerCount(type: string): number;
 
         async(): any;
-        prompt(opt: IPromptOptions | IPromptOptions[], callback: (answers: any) => void): void;
+        prompt(opt: IPromptOptions | IPromptOptions[]): Promise<any>;
         log(message: string) : void;
         npmInstall(packages: string[], options?: any, cb?: Function) :void;
         installDependencies(options?: IInstallDependencyOptions): void;

@@ -4,18 +4,16 @@
         "target": "es6",
         "noImplicitAny": false,
         "sourceMap": false,
-        "rootDir": "src",
+        "rootDir": "generators",
         "outDir": "generators",
         "listFiles": true,
         "allowJs": true
     },
     "filesGlob": [
-        "src/**/*.ts",
-        "src/**/*.js",
+        "generators/**/*.ts",
         "typings/index.d.ts"
     ],
     "exclude": [
-        "node_modules",
-        "generators"
+        "node_modules"
     ]
 }

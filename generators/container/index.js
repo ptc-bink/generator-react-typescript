@@ -1,37 +1,10 @@
 "use strict";
-const fs = require('fs');
-const _ = require('lodash');
-const Generators = require('yeoman-generator');
-function isContainerFile(filename, containersPath, layout) {
-    if (layout) {
-        return fs.statSync(`${containersPath}/${layout}`).isDirectory()
-            && fs.statSync(`${containersPath}/${layout}/${filename}`).isFile();
-    }
-    else
-        return fs.statSync(`${containersPath}/${filename}`).isFile();
-}
-function getContainers(containersPath) {
-    try {
-        if (!fs.statSync(containersPath).isDirectory())
-            return [];
-    }
-    catch (e) {
-        return [];
-    }
-    return _(fs.readdirSync(containersPath))
-        .filter(filename => isContainerFile(filename, containersPath))
-        .filter(filename => filename != 'index.ts')
-        .map(filename => filename.replace(/\.[^/.]+$/, ""))
-        .values();
-}
-module.exports = Generators.Base.extend({
-    constructor: function () {
-        Generators.Base.apply(this, arguments);
-        this.argument('name', { type: String, required: false });
-    },
+const base_1 = require('../base');
+module.exports = class extends base_1.default {
     /* Your initialization methods (checking current project state, getting configs, etc) */
     initializing() {
-    },
+        this.argument('name', { type: String, required: false, desc: 'container name' });
+    }
     prompting() {
         var prompts = [
             {
@@ -44,27 +17,13 @@ module.exports = Generators.Base.extend({
         ];
         return this.prompt(prompts).then((answers) => {
             this.name = answers.name || this.name;
-            this.srcPath = this.config.get('src');
         });
-    },
-    writing: {
-        source: function () {
-            this.fs.copyTpl(this.templatePath('container.tsx.ejs'), this.destinationPath(this.srcPath, `containers/${this.name}.tsx`), {
-                name: this.name
-            });
-        },
-        index: function () {
-            const containersPath = this.destinationPath(this.srcPath, 'containers');
-            let containers = getContainers(containersPath);
-            if (containers.indexOf(this.name) < 0)
-                containers = containers.push(this.name);
-            containers = containers.sort();
-            this.fs.copyTpl(this.templatePath('index.ts.ejs'), this.destinationPath(this.srcPath, 'containers/index.ts'), {
-                containers: containers.sort()
-            });
-        }
-    },
-    /* Called last, cleanup, say good bye, etc */
-    end() {
     }
-});
+    writing() {
+        super._writeContainer(this.name);
+        super._writeContainersIndex(super.getContainers().concat([this.name]));
+    }
+    /* Called last, cleanup, say good bye, etc */
+    end() { }
+}
+;

@@ -1,80 +1,15 @@
 "use strict";
-const YO = require('yeoman-generator');
+const base_1 = require('../base');
 var _ = require('lodash');
 var extend = _.merge;
-module.exports = class AppGenerator extends YO.Base {
-    constructor(...args) {
-        super(...args);
-        /* Where you write the generator specific files (routes, controllers, etc) */
-        this.writing = {
-            package() {
-                var currentPkg = this.fs.readJSON(this.destinationPath('package.json'), {});
-                var pkg = extend({
-                    name: _.kebabCase(this.settings.name),
-                    main: `${this.settings.bin}/main.js`,
-                    scripts: []
-                }, currentPkg);
-                this.fs.writeJSON(this.destinationPath('package.json'), pkg);
-            },
-            tsconfig() {
-                var currentPkg = this.fs.readJSON(this.destinationPath('tsconfig.json'), {});
-                var pkg = extend(currentPkg, {
-                    compilerOptions: {
-                        target: 'es6',
-                        module: "commonjs",
-                        moduleResolution: "node",
-                        jsx: "react",
-                        listFiles: true,
-                        isolatedModules: false,
-                        experimentalDecorators: true,
-                        emitDecoratorMetadata: true,
-                        declaration: false,
-                        noImplicitAny: false,
-                        removeComments: false,
-                        noLib: false,
-                        preserveConstEnums: true,
-                        suppressImplicitAnyIndexErrors: true,
-                        outDir: this.settings.bin,
-                        inlineSourceMap: false,
-                        inlineSources: false,
-                        sourceMap: true
-                    },
-                    filesGlob: [
-                        `${this.settings.src}/**/*.d.ts`,
-                        `${this.settings.src}/**/*.ts`,
-                        `${this.settings.src}/**/*.tsx`,
-                        "typings/index.d.ts"
-                    ],
-                    exclude: [
-                        "node_modules",
-                        "jspm"
-                    ]
-                });
-                this.fs.writeJSON(this.destinationPath('tsconfig.json'), pkg);
-            },
-            app() {
-                this.fs.copyTpl(this.templatePath('app.tsx.ejs'), this.destinationPath(`${this.settings.src}/app.tsx`), {
-                    appname: this.settings.name
-                });
-            },
-            components() {
-                this.fs.copyTpl(this.templatePath('components/index.ts.ejs'), this.destinationPath(`${this.settings.src}/components/index.ts`), {
-                    appname: this.settings.name
-                });
-            },
-            containers() {
-                this.fs.copyTpl(this.templatePath('containers/index.ts.ejs'), this.destinationPath(`${this.settings.src}/containers/index.ts`), {
-                    appname: this.settings.name
-                });
-            }
-        };
-    }
+module.exports = class extends base_1.default {
     /* Your initialization methods (checking current project state, getting configs, etc) */
     initializing() {
+        console.log('initializing');
     }
     /* Where you prompt users for options (where you'd call this.prompt()) */
     prompting() {
-        const done = this.async();
+        console.log('prompting');
         const frameworks = ['None', 'React'];
         var prompts = [
             {
@@ -118,14 +53,13 @@ module.exports = class AppGenerator extends YO.Base {
                 ]
             }
         ];
-        this.prompt(prompts, (answers) => {
+        return this.prompt(prompts).then((answers) => {
             this.settings = {
                 name: answers.name,
                 src: answers.src,
                 bin: answers.bin,
                 framework: answers.framework
             };
-            done();
         });
     }
     /* Saving configurations and configure the project (creating .editorconfig files and other metadata files) */
@@ -134,17 +68,29 @@ module.exports = class AppGenerator extends YO.Base {
         this.config.set('bin', this.settings.bin);
         this.config.set('framework', this.settings.framework);
     }
+    /* Where you write the generator specific files (routes, controllers, etc) */
+    writing() {
+        this._writePackage();
+        this._writeTsConfig();
+        this._writeApp();
+        this._writeComponents();
+        this._writeContainers();
+    }
     /* Where conflicts are handled (used internally) */
     //conflicts() { },
     /* Where installation are run (npm, bower) */
     install() {
-        if (this.settings.framework === 'React') {
-            this.npmInstall(['react', 'react-dom'], { save: true });
-            this.npmInstall(['webpack', 'typings'], { saveDev: true });
-        }
+        console.log('install');
+        this.npmInstall(['react', 'react-dom'], { save: true });
+        console.log('install 2');
+        this.npmInstall(['webpack', 'typings'], { saveDev: true }, () => {
+            this.spawnCommand('typings', ['install', '--save', '--global', 'dt~react', 'dt~react-dom']);
+        });
+        console.log('install 3');
     }
     /* Called last, cleanup, say good bye, etc */
     end() {
+        console.log('end');
     }
 }
 ;
