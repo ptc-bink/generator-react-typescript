@@ -7,4 +7,6 @@
 
 /* importing themes */
 <% themes.forEach(function(theme){ %>
-@import './theme-<%= theme %>';<% }); %>
+:global(.theme-<%= theme %>) {
+    @import './theme-<%= theme %>';
+}<% }); %>

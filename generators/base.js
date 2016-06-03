@@ -91,11 +91,15 @@ class BaseGenerator extends YO.Base {
                 component: component
             });
         });
-        this.fs.copyTpl(this.templatePath('style.scss.ejs'), this.destinationPath(src, `components/${component}/style.scss`), {
-            themes: themes
-        });
+        this._writeComponentThemesIndex(component, themes);
         this.fs.copyTpl(this.templatePath('style.d.ts.ejs'), this.destinationPath(src, `components/${component}/style.d.ts`), {
             name: component
+        });
+    }
+    _writeComponentThemesIndex(component, themes) {
+        const src = this.config.get('src');
+        this.fs.copyTpl(this.templatePath('../../component/templates/style.scss.ejs'), this.destinationPath(src, `components/${component}/style.scss`), {
+            themes: themes
         });
     }
     _writeContainer(name) {

@@ -99,8 +99,6 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeComponent(name) {
-        console.log("qqq" );
-        
         const src = this.config.get('src');
 
         this.fs.copyTpl(
@@ -118,7 +116,7 @@ abstract class BaseGenerator extends YO.Base {
 
         this.fs.copyTpl(
             this.templatePath('theme.scss.ejs'),
-            this.destinationPath(src, `components/${component}/theme.scss`),
+            this.destinationPath(src, `components/${component}/_theme.scss`),
             {
                 theme: 'default',
                 component: component
@@ -128,7 +126,7 @@ abstract class BaseGenerator extends YO.Base {
         themes.forEach(theme => {
             this.fs.copyTpl(
                 this.templatePath('theme.scss.ejs'),
-                this.destinationPath(src, `components/${component}/theme-${theme}.scss`),
+                this.destinationPath(src, `components/${component}/_theme-${theme}.scss`),
                 {
                     theme: theme,
                     component: component
@@ -136,19 +134,25 @@ abstract class BaseGenerator extends YO.Base {
             );
         });
 
-        this.fs.copyTpl(
-            this.templatePath('style.scss.ejs'),
-            this.destinationPath(src, `components/${component}/style.scss`),
-            {
-                themes: themes
-            }
-        );
+        this._writeComponentThemesIndex(component, themes);
 
         this.fs.copyTpl(
             this.templatePath('style.d.ts.ejs'),
             this.destinationPath(src, `components/${component}/style.d.ts`),
             {
                 name: component
+            }
+        );
+    }
+
+    _writeComponentThemesIndex(component: string, themes: string[]) {
+        const src = this.config.get('src');
+        
+        this.fs.copyTpl(
+            this.templatePath('../../component/templates/style.scss.ejs'),
+            this.destinationPath(src, `components/${component}/style.scss`),
+            {
+                themes: themes
             }
         );
     }
@@ -196,7 +200,7 @@ abstract class BaseGenerator extends YO.Base {
         components.forEach(component => {
             this.fs.copyTpl(
                 this.templatePath('theme.scss.ejs'),
-                this.destinationPath(src, `components/${component}/theme-${theme}.scss`),
+                this.destinationPath(src, `components/${component}/_theme-${theme}.scss`),
                 { theme, component }
             );
 
