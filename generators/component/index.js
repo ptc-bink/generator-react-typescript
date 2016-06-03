@@ -1,11 +1,11 @@
 "use strict";
-var Generators = require('yeoman-generator');
-var fs = require('fs');
-var _ = require('lodash');
+const Generators = require('yeoman-generator');
+const fs = require('fs');
+const _ = require('lodash');
 function isComponentDirectory(filename, componentsPath) {
     try {
-        return fs.statSync(componentsPath + "/" + filename).isDirectory()
-            && fs.statSync(componentsPath + "/" + filename + "/index.tsx").isFile();
+        return fs.statSync(`${componentsPath}/${filename}`).isDirectory()
+            && fs.statSync(`${componentsPath}/${filename}/index.tsx`).isFile();
     }
     catch (e) {
         return false;
@@ -19,7 +19,7 @@ function getComponents(componentsPath) {
     catch (e) {
         return [];
     }
-    return _.filter(fs.readdirSync(componentsPath), function (filename) { return isComponentDirectory(filename, componentsPath); });
+    return _.filter(fs.readdirSync(componentsPath), filename => isComponentDirectory(filename, componentsPath));
 }
 module.exports = Generators.Base.extend({
     constructor: function () {
@@ -31,10 +31,9 @@ module.exports = Generators.Base.extend({
         });
     },
     /* Your initialization methods (checking current project state, getting configs, etc) */
-    initializing: function () {
+    initializing() {
     },
-    prompting: function () {
-        var _this = this;
+    prompting() {
         var prompts = [
             {
                 type: 'input',
@@ -44,40 +43,39 @@ module.exports = Generators.Base.extend({
                 when: !this.name
             }
         ];
-        return this.prompt(prompts).then(function (answers) {
-            _this.name = answers.name || _this.name;
-            _this.srcPath = _this.config.get('src');
+        return this.prompt(prompts).then((answers) => {
+            this.name = answers.name || this.name;
+            this.srcPath = this.config.get('src');
         });
     },
     writing: {
         source: function () {
-            this.fs.copyTpl(this.templatePath('component.tsx.ejs'), this.destinationPath(this.srcPath, "components/" + this.name + "/index.tsx"), {
+            this.fs.copyTpl(this.templatePath('component.tsx.ejs'), this.destinationPath(this.srcPath, `components/${this.name}/index.tsx`), {
                 name: this.name
             });
         },
         themes: function () {
-            var _this = this;
-            var themes = this.config.get('themes') || [];
-            this.fs.copyTpl(this.templatePath('theme.scss.ejs'), this.destinationPath(this.srcPath, "components/" + this.name + "/theme.scss"), {
+            const themes = this.config.get('themes') || [];
+            this.fs.copyTpl(this.templatePath('theme.scss.ejs'), this.destinationPath(this.srcPath, `components/${this.name}/theme.scss`), {
                 theme: 'default',
                 component: this.name
             });
-            themes.forEach(function (theme) {
-                _this.fs.copyTpl(_this.templatePath('theme.scss.ejs'), _this.destinationPath(_this.srcPath, "components/" + _this.name + "/theme-" + theme + ".scss"), {
+            themes.forEach(theme => {
+                this.fs.copyTpl(this.templatePath('theme.scss.ejs'), this.destinationPath(this.srcPath, `components/${this.name}/theme-${theme}.scss`), {
                     theme: theme,
-                    component: _this.name
+                    component: this.name
                 });
             });
-            this.fs.copyTpl(this.templatePath('style.scss.ejs'), this.destinationPath(this.srcPath, "components/" + this.name + "/style.scss"), {
+            this.fs.copyTpl(this.templatePath('style.scss.ejs'), this.destinationPath(this.srcPath, `components/${this.name}/style.scss`), {
                 themes: themes
             });
-            this.fs.copyTpl(this.templatePath('style.d.ts.ejs'), this.destinationPath(this.srcPath, "components/" + this.name + "/style.d.ts"), {
+            this.fs.copyTpl(this.templatePath('style.d.ts.ejs'), this.destinationPath(this.srcPath, `components/${this.name}/style.d.ts`), {
                 name: this.srcPath
             });
         },
         index: function () {
-            var componentsPath = this.destinationPath(this.srcPath, 'components');
-            var components = getComponents(componentsPath);
+            const componentsPath = this.destinationPath(this.srcPath, 'components');
+            const components = getComponents(componentsPath);
             if (components.indexOf(this.name) < 0)
                 components.push(this.name);
             this.fs.copyTpl(this.templatePath('index.ts.ejs'), this.destinationPath(this.srcPath, 'components/index.ts'), {
@@ -86,6 +84,6 @@ module.exports = Generators.Base.extend({
         }
     },
     /* Called last, cleanup, say good bye, etc */
-    end: function () {
+    end() {
     }
 });

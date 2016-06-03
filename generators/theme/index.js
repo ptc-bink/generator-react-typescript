@@ -1,10 +1,10 @@
 "use strict";
-var Generators = require('yeoman-generator');
-var fs = require('fs');
-var _ = require('lodash');
+const Generators = require('yeoman-generator');
+const fs = require('fs');
+const _ = require('lodash');
 function isComponentDirectory(filename, componentsPath) {
-    return fs.statSync(componentsPath + "/" + filename).isDirectory()
-        && fs.statSync(componentsPath + "/" + filename + "/" + filename + ".tsx").isFile();
+    return fs.statSync(`${componentsPath}/${filename}`).isDirectory()
+        && fs.statSync(`${componentsPath}/${filename}/${filename}.tsx`).isFile();
 }
 function getComponents(componentsPath) {
     try {
@@ -14,7 +14,7 @@ function getComponents(componentsPath) {
     catch (e) {
         return [];
     }
-    return _.filter(fs.readdirSync(componentsPath), function (filename) { return isComponentDirectory(filename, componentsPath); });
+    return _.filter(fs.readdirSync(componentsPath), filename => isComponentDirectory(filename, componentsPath));
 }
 module.exports = Generators.Base.extend({
     constructor: function () {
@@ -22,10 +22,9 @@ module.exports = Generators.Base.extend({
         this.argument('name', { type: String, required: false });
     },
     /* Your initialization methods (checking current project state, getting configs, etc) */
-    initializing: function () {
+    initializing() {
     },
-    prompting: function () {
-        var _this = this;
+    prompting() {
         var prompts = [
             {
                 type: 'input',
@@ -35,30 +34,29 @@ module.exports = Generators.Base.extend({
                 when: !this.name
             }
         ];
-        return this.prompt(prompts).then(function (answers) {
-            _this.name = answers.name || _this.name;
-            _this.srcPath = _this.config.get('src');
+        return this.prompt(prompts).then((answers) => {
+            this.name = answers.name || this.name;
+            this.srcPath = this.config.get('src');
         });
     },
     /* Saving configurations and configure the project (creating .editorconfig files and other metadata files) */
-    configuring: function () {
+    configuring() {
         var themes = this.config.get('themes') || [];
         themes.push(this.name);
         this.config.set('themes', themes);
     },
     writing: {
-        all: function () {
-            var _this = this;
-            var themes = this.config.get('themes') || [];
-            var componentsPath = this.destinationPath(this.srcPath, 'components');
-            var components = getComponents(componentsPath);
+        all() {
+            const themes = this.config.get('themes') || [];
+            const componentsPath = this.destinationPath(this.srcPath, 'components');
+            const components = getComponents(componentsPath);
             console.log(themes);
-            components.forEach(function (component) {
-                _this.fs.copyTpl(_this.templatePath('theme.scss.ejs'), _this.destinationPath(_this.srcPath, "components/" + component + "/theme-" + _this.name + ".scss"), {
-                    theme: _this.name,
+            components.forEach(component => {
+                this.fs.copyTpl(this.templatePath('theme.scss.ejs'), this.destinationPath(this.srcPath, `components/${component}/theme-${this.name}.scss`), {
+                    theme: this.name,
                     component: component
                 });
-                _this.fs.copyTpl(_this.templatePath('style.scss.ejs'), _this.destinationPath(_this.srcPath, "components/" + component + "/style.scss"), {
+                this.fs.copyTpl(this.templatePath('style.scss.ejs'), this.destinationPath(this.srcPath, `components/${component}/style.scss`), {
                     themes: themes,
                     component: component
                 });
@@ -66,6 +64,6 @@ module.exports = Generators.Base.extend({
         }
     },
     /* Called last, cleanup, say good bye, etc */
-    end: function () {
+    end() {
     }
 });
