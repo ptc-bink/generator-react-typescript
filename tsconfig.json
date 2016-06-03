@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "rootDir": "src",
+        "outDir": "generators",
+        "listFiles": true,
+        "allowJs": true
+    },
+    "filesGlob": [
+        "src/**/*.ts",
+        "src/**/*.js",
+        "typings/index.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "generators"
+    ]
+}

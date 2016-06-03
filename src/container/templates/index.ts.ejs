@@ -1,0 +1,9 @@
+/** 
+ * This is automatically generated components index file. 
+ * */
+<% containers.forEach(function(container){ %>
+import <%= container %> from './<%= container %>';<% }); %>
+ 
+export { 
+        <%= containers.join(', \r\n\t\t') %> 
+    }
