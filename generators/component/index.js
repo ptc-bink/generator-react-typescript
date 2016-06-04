@@ -22,9 +22,7 @@ module.exports = class extends base_1.default {
             }
         ];
         return this.prompt(prompts).then((answers) => {
-            console.log(this.name);
             this.name = answers.name || this.name;
-            console.log(this.name);
         });
     }
     writing() {

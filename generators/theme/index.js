@@ -10,7 +10,7 @@ module.exports = class extends base_1.default {
             {
                 type: 'input',
                 name: 'name',
-                message: 'Theme name',
+                message: 'theme name',
                 default: this.name,
                 when: !this.name
             }
@@ -21,9 +21,7 @@ module.exports = class extends base_1.default {
     }
     /* Saving configurations and configure the project (creating .editorconfig files and other metadata files) */
     configuring() {
-        var themes = this.config.get('themes') || [];
-        themes.push(this.name);
-        this.config.set('themes', themes);
+        this.settings.themes = this.settings.themes.concat([this.name]);
     }
     writing() {
         super._writeTheme(this.name);

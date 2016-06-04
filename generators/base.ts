@@ -1,28 +1,131 @@
 import * as YO from 'yeoman-generator';
+
 const fs = require('fs');
 
 var _ = require('lodash');
 var extend = _.merge;
 
-abstract class BaseGenerator extends YO.Base {
+export enum Features {
+    redux = 1,
+    webpack = 2,
+    typings = 3,
+    vscode = 4,
+    router = 5
+}
+
+export enum ReduxFeatures {
+    logger,
+    devtools
+}
+
+export enum CssPreprocessor {
+    none = 0,
+    scss = 1
+}
+
+export interface IGeneratorSettings {
+    name: string,
+    src: string,
+    bin: string,
+    features: Features[],
+    redux: ReduxFeatures[],
+    css: CssPreprocessor
+}
+
+class GeneratorSettings {
+    constructor(private config) {
+
+    }
+
+    get src(): string {
+        return this.config.get('src');
+    }
+
+    set src(value: string) {
+        this.config.set('src', value);
+    }
+
+    get bin(): string {
+        return this.config.get('bin');
+    }
+
+    set bin(value: string) {
+        this.config.set('bin', value);
+    }
+
+    get features(): Features[] {
+        return this.config.get('features');
+    }
+
+    set features(value: Features[]) {
+        this.config.set('features', value);
+    }
+
+    hasFeature(feature: Features) {
+        return this.features.indexOf(feature) >= 0;
+    }
+
+    get redux(): ReduxFeatures[] {
+        return this.config.get('redux');
+    }
+
+    hasReduxFeature(feature: ReduxFeatures) {
+        return this.redux.indexOf(feature) >= 0;
+    }
+
+    set redux(value: ReduxFeatures[]) {
+        this.config.set('redux', value);
+    }
+
+    get css(): CssPreprocessor {
+        return this.config.get('css');
+    }
+
+    set css(value: CssPreprocessor) {
+        this.config.set('css', value);
+    }
+
+    get themes(): string[] {
+        return this.config.get('themes');
+    }
+
+    set themes(value: string[]) {
+        this.config.set('themes', value);
+    }
+}
+
+export abstract class BaseGenerator extends YO.Base {
+
+    private _settings = new GeneratorSettings(this.config);
+
+    get settings() {
+        return this._settings;
+    }
 
     _writePackage() {
-        const src = this.config.get('src');
-        const bin = this.config.get('bin');
+
         const currentPkg = this.fs.readJSON(this.destinationPath('package.json'), {});
 
         var pkg = extend({
             name: _.kebabCase(this.appname),
-            main: `${bin}/main.js`,
-            scripts: []
+            main: `${this.settings.bin}/main.js`,
+            scripts: {}
         }, currentPkg);
 
         this.fs.writeJSON(this.destinationPath('package.json'), pkg);
     }
 
+    writePackageScript(name: string, script: string) {
+        const currentPkg: any = this.fs.readJSON(this.destinationPath('package.json'), { scripts: {} });
+
+        currentPkg.scripts = extend(currentPkg.scripts, {
+            [name]: script
+        });
+
+        this.fs.writeJSON(this.destinationPath('package.json'), currentPkg);
+    }
+
     _writeTsConfig() {
-        const src = this.config.get('src');
-        const bin = this.config.get('bin');
 
         var currentPkg = this.fs.readJSON(this.destinationPath('tsconfig.json'), {});
 
@@ -32,7 +135,7 @@ abstract class BaseGenerator extends YO.Base {
                 module: "commonjs",
                 moduleResolution: "node",
                 jsx: "react",
-                listFiles: true,
+                listFiles: false,
                 isolatedModules: false,
                 experimentalDecorators: true,
                 emitDecoratorMetadata: true,
@@ -42,15 +145,15 @@ abstract class BaseGenerator extends YO.Base {
                 noLib: false,
                 preserveConstEnums: true,
                 suppressImplicitAnyIndexErrors: true,
-                outDir: bin,
+                outDir: this.settings.bin,
                 inlineSourceMap: false,
                 inlineSources: false,
                 sourceMap: true
             },
             filesGlob: [
-                `${src}/**/*.d.ts`,
-                `${src}/**/*.ts`,
-                `${src}/**/*.tsx`,
+                `${this.settings.src}/**/*.d.ts`,
+                `${this.settings.src}/**/*.ts`,
+                `${this.settings.src}/**/*.tsx`,
                 "typings/index.d.ts"
             ],
             exclude: [
@@ -63,11 +166,9 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeApp() {
-        const src = this.config.get('src');
-
         this.fs.copyTpl(
             this.templatePath('app.tsx.ejs'),
-            this.destinationPath(`${src}/app.tsx`),
+            this.destinationPath(`${this.settings.src}/app.tsx`),
             {
                 appname: this.appname
             }
@@ -75,11 +176,10 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeComponents() {
-        const src = this.config.get('src');
 
         this.fs.copyTpl(
             this.templatePath('components/index.ts.ejs'),
-            this.destinationPath(`${src}/components/index.ts`),
+            this.destinationPath(`${this.settings.src}/components/index.ts`),
             {
                 appname: this.appname
             }
@@ -87,11 +187,10 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeContainers() {
-        const src = this.config.get('src');
 
         this.fs.copyTpl(
             this.templatePath('containers/index.ts.ejs'),
-            this.destinationPath(`${src}/containers/index.ts`),
+            this.destinationPath(this.settings.src, `containers`, `index.ts`),
             {
                 appname: this.appname
             }
@@ -99,11 +198,10 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeComponent(name) {
-        const src = this.config.get('src');
 
         this.fs.copyTpl(
             this.templatePath('component.tsx.ejs'),
-            this.destinationPath(src, `components/${name}/index.tsx`),
+            this.destinationPath(this.settings.src, `components`, name, `index.tsx`),
             {
                 name: name
             }
@@ -111,12 +209,12 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeThemes(component) {
-        const src = this.config.get('src');
+
         const themes = this.config.get('themes') || [];
 
         this.fs.copyTpl(
             this.templatePath('theme.scss.ejs'),
-            this.destinationPath(src, `components/${component}/_theme.scss`),
+            this.destinationPath(this.settings.src, `components/${component}/_theme.scss`),
             {
                 theme: 'default',
                 component: component
@@ -126,7 +224,7 @@ abstract class BaseGenerator extends YO.Base {
         themes.forEach(theme => {
             this.fs.copyTpl(
                 this.templatePath('theme.scss.ejs'),
-                this.destinationPath(src, `components/${component}/_theme-${theme}.scss`),
+                this.destinationPath(this.settings.src, `components/${component}/_theme-${theme}.scss`),
                 {
                     theme: theme,
                     component: component
@@ -138,7 +236,7 @@ abstract class BaseGenerator extends YO.Base {
 
         this.fs.copyTpl(
             this.templatePath('style.d.ts.ejs'),
-            this.destinationPath(src, `components/${component}/style.d.ts`),
+            this.destinationPath(this.settings.src, `components/${component}/style.d.ts`),
             {
                 name: component
             }
@@ -146,11 +244,10 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeComponentThemesIndex(component: string, themes: string[]) {
-        const src = this.config.get('src');
-        
+
         this.fs.copyTpl(
             this.templatePath('../../component/templates/style.scss.ejs'),
-            this.destinationPath(src, `components/${component}/style.scss`),
+            this.destinationPath(this.settings.src, `components/${component}/style.scss`),
             {
                 themes: themes
             }
@@ -158,21 +255,18 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeContainer(name: string) {
-        const src = this.config.get('src');
-
         this.fs.copyTpl(
             this.templatePath('container.tsx.ejs'),
-            this.destinationPath(src, `containers/${name}.tsx`),
+            this.destinationPath(this.settings.src, `containers/${name}.tsx`),
             { name }
         );
     }
 
     _writeComponentsIndex(components: string[]) {
-        const src = this.config.get('src');
 
         this.fs.copyTpl(
             this.templatePath('index.ts.ejs'),
-            this.destinationPath(src, 'components/index.ts'),
+            this.destinationPath(this.settings.src, 'components/index.ts'),
             {
                 components: components.sort()
             }
@@ -180,13 +274,11 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeContainersIndex(containers: string[]) {
-        const src = this.config.get('src');
-
         containers = containers.sort();
 
         this.fs.copyTpl(
             this.templatePath('index.ts.ejs'),
-            this.destinationPath(src, 'containers/index.ts'),
+            this.destinationPath(this.settings.src, 'containers/index.ts'),
             {
                 containers: containers.sort()
             }
@@ -194,20 +286,21 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     _writeTheme(theme: string, components: string[] = this.getComponents()) {
-        const src = this.config.get('src');
-        const themes = this.config.get('themes') || [];
 
         components.forEach(component => {
             this.fs.copyTpl(
                 this.templatePath('theme.scss.ejs'),
-                this.destinationPath(src, `components/${component}/_theme-${theme}.scss`),
+                this.destinationPath(this.settings.src, `components/${component}/_theme-${theme}.scss`),
                 { theme, component }
             );
 
             this.fs.copyTpl(
                 this.templatePath('style.scss.ejs'),
-                this.destinationPath(src, `components/${component}/style.scss`),
-                { themes, component }
+                this.destinationPath(this.settings.src, `components/${component}/style.scss`),
+                {
+                    themes: this.settings.themes,
+                    component
+                }
             );
         });
     }
@@ -223,8 +316,7 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     getComponents(): string[] {
-        const src = this.config.get('src');
-        const componentsPath = this.destinationPath(src, 'components');
+        const componentsPath = this.destinationPath(this.settings.src, 'components');
 
         try {
             if (!fs.statSync(componentsPath).isDirectory())
@@ -247,9 +339,8 @@ abstract class BaseGenerator extends YO.Base {
     }
 
     getContainers() {
-        const src = this.config.get('src');
-        const containersPath = this.destinationPath(src, 'containers');
 
+        const containersPath = this.destinationPath(this.settings.src, 'containers');
 
         try {
             if (!fs.statSync(containersPath).isDirectory())
@@ -264,6 +355,24 @@ abstract class BaseGenerator extends YO.Base {
             .filter(filename => filename != 'index.ts')
             .map(filename => filename.replace(/\.[^/.]+$/, ""))
             .values();
+    }
+
+    protected writeVSCodeTask(task: string) {
+        const currentPkg: any = this.fs.readJSON(this.destinationPath('.vscode', 'tasks.json'), {
+            version: '0.1.0',
+            command: 'npm',
+            isShellCommand: true,
+            showOutput: 'always',
+            suppressTaskName: true,
+            tasks: []
+        });
+
+
+        var pkg = extend(currentPkg, {
+            tasks: currentPkg.tasks.concat([{ taskName: task, args: ["run", task] }])
+        });
+
+        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), pkg);
     }
 }
 

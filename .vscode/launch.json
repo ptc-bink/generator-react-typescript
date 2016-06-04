@@ -5,7 +5,7 @@
             "name": "Launch",
             "type": "node",
             "request": "launch",
-            "program": "C:/Users/abolisov/AppData/Roaming/npm/node_modules/yo/lib/cli.js",
+            "program": "%appdata%/Roaming/npm/node_modules/yo/lib/cli.js",
             "stopOnEntry": false,
             "args": [ "react-typescript" ],
             "cwd": "${workspaceRoot}",

@@ -7,13 +7,15 @@
         "rootDir": "generators",
         "outDir": "generators",
         "listFiles": true,
-        "allowJs": true
+        "allowJs": false
     },
     "filesGlob": [
         "generators/**/*.ts",
         "typings/index.d.ts"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "generators/**/*.js",
+        "generators/**/*.ejs"
     ]
 }
