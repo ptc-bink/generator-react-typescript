@@ -7,6 +7,10 @@
     "build": "tsc -p .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bolisov/generator-react-typescript.git"
+  },
   "files": [
     "generators"
   ],
