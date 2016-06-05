@@ -19,8 +19,9 @@ Scaffolds out a complete React Typescript project structure for you:
 ├── src/
 │   ├── components/
 │   │   └── index.ts
-│   └── containers/
-│       └── index.ts
+│   ├── containers/
+│   │   └── index.ts
+│   └── app.tsx
 ├── .yo-rc.json
 ├── package.json
 ├── typings.json
