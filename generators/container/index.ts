@@ -14,7 +14,7 @@ export = class extends BaseGenerator {
             {
                 type: 'input',
                 name: 'name',
-                message: 'Container name',
+                message: 'Enter container name:',
                 default: this.name,
                 when: !this.name
             }

@@ -10,7 +10,7 @@ module.exports = class extends base_1.default {
             {
                 type: 'input',
                 name: 'name',
-                message: 'theme name',
+                message: 'Enter theme name:',
                 default: this.name,
                 when: !this.name
             }

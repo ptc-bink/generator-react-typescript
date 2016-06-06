@@ -16,7 +16,7 @@ module.exports = class extends base_1.default {
             {
                 type: 'input',
                 name: 'name',
-                message: 'Component name',
+                message: 'Enter component name:',
                 default: this.name,
                 when: !this.name
             }

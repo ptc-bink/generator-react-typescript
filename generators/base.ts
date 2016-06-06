@@ -1,8 +1,21 @@
 import * as YO from 'yeoman-generator';
-
+import * as _ from 'lodash';
 const fs = require('fs');
 
-var _ = require('lodash');
+interface VSCodeTaskConfig {
+    taskName: string,
+    args: string[]
+}
+
+interface VSCodeTasksConfig {
+    version: string,
+    command: string,
+    isShellCommand: boolean,
+    showOutput: string,
+    suppressTaskName: boolean,
+    tasks: VSCodeTaskConfig[];
+}
+
 var extend = _.merge;
 
 export enum Features {
@@ -15,7 +28,9 @@ export enum Features {
 
 export enum ReduxFeatures {
     logger,
-    devtools
+    devtools,
+    saga,
+    thunk
 }
 
 export enum CssPreprocessor {
@@ -91,6 +106,14 @@ class GeneratorSettings {
 
     set themes(value: string[]) {
         this.config.set('themes', value);
+    }
+
+    get initialized(): boolean {
+        return this.config.get('initialized');
+    }
+
+    set initialized(value: boolean) {
+        this.config.set('initialized', value);
     }
 }
 
@@ -326,7 +349,7 @@ export abstract class BaseGenerator extends YO.Base {
             return [];
         }
 
-        return _.filter(fs.readdirSync(componentsPath), filename => this.isComponentDirectory(filename, componentsPath));
+        return _.filter(fs.readdirSync(componentsPath) as string[], filename => this.isComponentDirectory(filename, componentsPath));
     }
 
     private isContainerFile(filename, containersPath, layout?) {
@@ -350,29 +373,31 @@ export abstract class BaseGenerator extends YO.Base {
             return [];
         }
 
-        return _(fs.readdirSync(containersPath))
+        return _(fs.readdirSync(containersPath) as string[])
             .filter(filename => this.isContainerFile(filename, containersPath))
             .filter(filename => filename != 'index.ts')
             .map(filename => filename.replace(/\.[^/.]+$/, ""))
-            .values();
+            .value();
     }
 
     protected writeVSCodeTask(task: string) {
-        const currentPkg: any = this.fs.readJSON(this.destinationPath('.vscode', 'tasks.json'), {
+        const currentPkg = this.fs.readJSON(this.destinationPath('.vscode', 'tasks.json'), {
             version: '0.1.0',
             command: 'npm',
             isShellCommand: true,
             showOutput: 'always',
             suppressTaskName: true,
             tasks: []
-        });
+        }) as VSCodeTasksConfig;
 
+        let tasksPairs = currentPkg.tasks.map(task => [task.taskName, task] as [string, VSCodeTaskConfig]);
+        let tasks = _.fromPairs(tasksPairs);
 
-        var pkg = extend(currentPkg, {
-            tasks: currentPkg.tasks.concat([{ taskName: task, args: ["run", task] }])
-        });
+        tasks = extend(tasks, { [task]: { taskName: task, args: ["run", task] } });
 
-        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), pkg);
+        currentPkg.tasks = _.values<VSCodeTaskConfig>(tasks);
+
+        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), tasks);
     }
 }
 

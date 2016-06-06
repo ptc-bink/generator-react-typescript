@@ -2,5 +2,8 @@
   "globalDependencies": {
     "node": "registry:dt/node#6.0.0+20160602155235",
     "yeoman-generator": "registry:dt/yeoman-generator#0.0.0+20160317120654"
+  },
+  "dependencies": {
+    "lodash": "registry:npm/lodash#4.0.0+20160416211519"
   }
 }

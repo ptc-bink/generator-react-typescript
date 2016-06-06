@@ -107,7 +107,7 @@ declare namespace yo {
         name: string;
         message: string | ((answers: Object) => string);
         choices?: any[] | ((answers: Object) => any);
-        default?: string | number | string[] | number[] | ((answers: Object) => (string | number | string[] | number[]));
+        default?: boolean | string | number | string[] | number[] | ((answers: Object) => (string | number | string[] | number[]));
         validate?: ((input: any) => boolean | string);
         filter?: ((input: any) => any);
         when?: ((answers: Object) => boolean) | boolean;

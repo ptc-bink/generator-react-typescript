@@ -22,7 +22,7 @@ export = class extends BaseGenerator {
             {
                 type: 'input',
                 name: 'name',
-                message: 'Component name',
+                message: 'Enter component name:',
                 default: this.name,
                 when: !this.name
             }

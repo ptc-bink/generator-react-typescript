@@ -10,7 +10,7 @@ module.exports = class extends base_1.default {
             {
                 type: 'input',
                 name: 'name',
-                message: 'Container name',
+                message: 'Enter container name:',
                 default: this.name,
                 when: !this.name
             }

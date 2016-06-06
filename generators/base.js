@@ -1,7 +1,7 @@
 "use strict";
 const YO = require('yeoman-generator');
+const _ = require('lodash');
 const fs = require('fs');
-var _ = require('lodash');
 var extend = _.merge;
 (function (Features) {
     Features[Features["redux"] = 1] = "redux";
@@ -14,6 +14,8 @@ var Features = exports.Features;
 (function (ReduxFeatures) {
     ReduxFeatures[ReduxFeatures["logger"] = 0] = "logger";
     ReduxFeatures[ReduxFeatures["devtools"] = 1] = "devtools";
+    ReduxFeatures[ReduxFeatures["saga"] = 2] = "saga";
+    ReduxFeatures[ReduxFeatures["thunk"] = 3] = "thunk";
 })(exports.ReduxFeatures || (exports.ReduxFeatures = {}));
 var ReduxFeatures = exports.ReduxFeatures;
 (function (CssPreprocessor) {
@@ -66,6 +68,12 @@ class GeneratorSettings {
     }
     set themes(value) {
         this.config.set('themes', value);
+    }
+    get initialized() {
+        return this.config.get('initialized');
+    }
+    set initialized(value) {
+        this.config.set('initialized', value);
     }
 }
 class BaseGenerator extends YO.Base {
@@ -234,7 +242,7 @@ class BaseGenerator extends YO.Base {
             .filter(filename => this.isContainerFile(filename, containersPath))
             .filter(filename => filename != 'index.ts')
             .map(filename => filename.replace(/\.[^/.]+$/, ""))
-            .values();
+            .value();
     }
     writeVSCodeTask(task) {
         const currentPkg = this.fs.readJSON(this.destinationPath('.vscode', 'tasks.json'), {
@@ -245,10 +253,11 @@ class BaseGenerator extends YO.Base {
             suppressTaskName: true,
             tasks: []
         });
-        var pkg = extend(currentPkg, {
-            tasks: currentPkg.tasks.concat([{ taskName: task, args: ["run", task] }])
-        });
-        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), pkg);
+        let tasksPairs = currentPkg.tasks.map(task => [task.taskName, task]);
+        let tasks = _.fromPairs(tasksPairs);
+        tasks = extend(tasks, { [task]: { taskName: task, args: ["run", task] } });
+        currentPkg.tasks = _.values(tasks);
+        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), tasks);
     }
 }
 exports.BaseGenerator = BaseGenerator;
