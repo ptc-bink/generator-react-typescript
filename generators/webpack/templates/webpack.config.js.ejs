@@ -3,13 +3,14 @@
 var webpack = require('webpack');
 var path = require('path');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var HtmlWebpackPlugin = require("html-webpack-plugin");
 
 let config = {
     devtool: 'source-map', // Source maps support ('inline-source-map' also works) 
     debug: <%= development %>,
     entry: [
 <% if (development) { %>        
-        'webpack-dev-server/client?http://0.0.0.0:9001', // WebpackDevServer host and port
+        'webpack-dev-server/client?http://0.0.0.0:9000', // WebpackDevServer host and port
         'webpack/hot/only-dev-server', // "only" prevents reload on syntax errors
 <% } %>        
         'babel-polyfill',
@@ -18,8 +19,7 @@ let config = {
     bail: false,
     output: {
         path: path.join(__dirname, '<%= bin %>'),
-        filename: '[name].js',
-        publicPath: './'
+        filename: '[name].js'
     },
     resolve: {
         extensions: [ '', '.ts', '.tsx', '.js', '.jsx', '.scss', '.css' ],
@@ -54,6 +54,11 @@ let config = {
             'process.env': {
                 'NODE_ENV': JSON.stringify(process.env.NODE_ENV)
             }
+        }),
+        new HtmlWebpackPlugin({            
+            inject: false,
+            template: require('html-webpack-template'),
+            appMountId: 'app'
         })
     ]
 }

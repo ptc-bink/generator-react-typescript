@@ -390,14 +390,14 @@ export abstract class BaseGenerator extends YO.Base {
             tasks: []
         }) as VSCodeTasksConfig;
 
-        let tasksPairs = currentPkg.tasks.map(task => [task.taskName, task] as [string, VSCodeTaskConfig]);
+        let tasksPairs = (currentPkg.tasks || []).map(task => [task.taskName, task] as [string, VSCodeTaskConfig]);
         let tasks = _.fromPairs(tasksPairs);
 
         tasks = extend(tasks, { [task]: { taskName: task, args: ["run", task] } });
 
-        currentPkg.tasks = _.values<VSCodeTaskConfig>(tasks);
+        currentPkg.tasks = _.map(tasks, (task, taskName) => ({ taskName, args: task.args }));
 
-        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), tasks);
+        this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), currentPkg);
     }
 }
 

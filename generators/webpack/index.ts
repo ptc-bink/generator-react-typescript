@@ -20,6 +20,9 @@ export = class extends BaseGenerator {
     }
 
     writing() {
+        this.writePackageScript('build', `webpack --config webpack.production.config.js`);
+        this.writePackageScript('start', `webpack-dev-server --config webpack.development.config.js --port 9000 --hot --inline --history-api-fallback --open http://localhost:9000/webpack-dev-server/client`);
+
         this.fs.copyTpl(
             this.templatePath('webpack.config.js.ejs'),
             this.destinationPath(`webpack.production.config.js`),
@@ -51,6 +54,7 @@ export = class extends BaseGenerator {
     install() {
         this.npmInstall(['webpack', 'webpack-dev-server', 'extract-text-webpack-plugin', 'css-loader', 'style-loader', 'resolve-url-loader', 'file-loader', 'react-hot-loader', 'ts-loader'], { saveDev: true });
         this.npmInstall(['babel-core', 'babel-loader', 'babel-polyfill', 'babel-preset-es2015', 'babel-preset-react'], { saveDev: true });
+        this.npmInstall(['html-webpack-plugin', 'html-webpack-template'], { saveDev: true });
 
         if (this.settings.css === CssPreprocessor.scss) {
             this.npmInstall(['node-sass', 'sass-loader'], { saveDev: true });

@@ -23,14 +23,8 @@ export = class extends BaseGenerator {
         this._writeComponents();
         this._writeContainers();
 
-        if (this.settings.hasFeature(Features.webpack)) {
-            this.writePackageScript('build', `webpack --config webpack.production.config.js`);
-            this.writePackageScript('start', `webpack-dev-server --config webpack.development.config.js --port 9000 --hot --inline --public-path / --history-api-fallback --open`);
-        }
-        else {
-            this.writePackageScript('build', `tsc -p .`);
-            this.writePackageScript('start', `light-http -d ${this.settings.bin}`);
-        }
+        this.writePackageScript('build', `tsc -p .`);
+        this.writePackageScript('start', `light-http -d ${this.settings.bin}`);
 
         if (this.settings.hasFeature(Features.vscode)) {
             this.writeVSCodeTask('build');
