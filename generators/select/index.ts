@@ -33,7 +33,7 @@ export = class extends BaseGenerator {
             choices = [
                 { value: Generators.component, short: 'component', name: 'Generate a new React component' },
                 { value: Generators.container, short: 'container', name: 'Generate a new React data container' },
-                { value: Generators.container, short: 'theme', name: 'Register a new components theme' },
+                { value: Generators.theme, short: 'theme', name: 'Register a new components theme' },
                 new inquirer.Separator(),
                 { value: Generators.config, short: 'config', name: `Change generator's settings` },
                 { value: Generators.sync, short: 'sync', name: `Syncronize all automatically generated files` }
