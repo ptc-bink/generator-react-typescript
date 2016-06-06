@@ -8,7 +8,8 @@ enum Generators {
     component,
     container,
     theme,
-    sync
+    sync,
+    webpack
 }
 
 export = class extends BaseGenerator {
@@ -23,6 +24,7 @@ export = class extends BaseGenerator {
         if (!this.settings.initialized) {
             choices = [
                 { value: Generators.init, short: 'init', name: `Generate a React Typescript project structure` },
+                { value: Generators.webpack, short: 'webpack', name: `Generate a Webpack config file` },
                 new inquirer.Separator(),
                 { value: Generators.config, short: 'config', name: `Change generator settings` },
             ]
@@ -34,7 +36,7 @@ export = class extends BaseGenerator {
                 { value: Generators.container, short: 'theme', name: 'Register a new components theme' },
                 new inquirer.Separator(),
                 { value: Generators.config, short: 'config', name: `Change generator's settings` },
-                { value: Generators.sync, short: 'sync', name: `Syncronize all automatically generated files` },
+                { value: Generators.sync, short: 'sync', name: `Syncronize all automatically generated files` }
             ]
         }
 
@@ -56,6 +58,9 @@ export = class extends BaseGenerator {
                 case Generators.container:
                     this.composeWith('react-typescript:container', {});
                     break;
+                case Generators.theme:
+                    this.composeWith('react-typescript:theme', {});
+                    break;
                 case Generators.init:
                     this.composeWith('react-typescript:init', {});
                     break;
@@ -64,6 +69,9 @@ export = class extends BaseGenerator {
                     break;
                 case Generators.sync:
                     this.composeWith('react-typescript:sync', {});
+                    break;
+                case Generators.webpack:
+                    this.composeWith('react-typescript:webpack', {});
                     break;
             }
         });
