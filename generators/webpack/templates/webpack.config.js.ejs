@@ -1,0 +1,68 @@
+'use strict';
+
+var webpack = require('webpack');
+var path = require('path');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
+
+let config = {
+    devtool: 'source-map', // Source maps support ('inline-source-map' also works) 
+    debug: <%= development %>,
+    entry: [
+<% if (development) { %>        
+        'webpack-dev-server/client?http://0.0.0.0:9001', // WebpackDevServer host and port
+        'webpack/hot/only-dev-server', // "only" prevents reload on syntax errors
+<% } %>        
+        'babel-polyfill',
+        './<%= src %>/app.tsx'
+    ],
+    bail: false,
+    output: {
+        path: path.join(__dirname, '<%= bin %>'),
+        filename: '[name].js',
+        publicPath: './'
+    },
+    resolve: {
+        extensions: [ '', '.ts', '.tsx', '.js', '.jsx', '.scss', '.css' ],
+        modulesDirectories: [path.join(__dirname, 'node_modules')]
+    },
+    module: {
+        loaders: [
+            {
+                test: /\.tsx?$/,
+<% if (development) { %>
+                loaders: ['react-hot', 'babel', 'ts'],
+<% } else { %>
+                loaders: ['babel', 'ts'],
+<% } %>                
+                exclude: /node_modules/
+            },
+<% if (scss) { %>
+    <% if (cssModules) { %>            
+            { test: /\.scss$/, loader: ExtractTextPlugin.extract("style", "css?modules&sourceMap!resolve-url!sass?sourceMap") },
+    <% } else { %>
+            { test: /\.scss$/, loader: ExtractTextPlugin.extract("style", "css?sourceMap!resolve-url!sass?sourceMap") },
+    <% } %>
+<% } %>
+            { test: /\.(eot|woff|woff2|ttf|svg)$/, loader: "file?name=fonts/[name].[ext]" },
+            { test: /\.mp3$/, loader: "file?name=sounds/[name].[ext]" },
+            { test: /\.html$/, loader: "file?name=[name].[ext]" }
+        ]
+    },
+    plugins: [
+        new ExtractTextPlugin("[name].css"),
+        new webpack.DefinePlugin({
+            'process.env': {
+                'NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+            }
+        })
+    ]
+}
+
+<% if (production) { %>        
+config.plugins.push( new webpack.optimize.UglifyJsPlugin( {
+    compressor: { keep_fnames: true, warnings: false },
+    mangle: { keep_fnames: true }
+    }));
+<% } %>
+
+module.exports = config;
