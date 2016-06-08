@@ -3,8 +3,7 @@
     "chalk": "registry:dt/chalk#0.4.0+20160317120654",
     "glob": "registry:dt/glob#5.0.10+20160317120654",
     "minimatch": "registry:dt/minimatch#2.0.8+20160317120654",
-    "node": "registry:dt/node#6.0.0+20160602155235",
-    "yeoman-generator": "registry:dt/yeoman-generator#0.0.0+20160317120654"
+    "node": "registry:dt/node#6.0.0+20160602155235"
   },
   "dependencies": {
     "lodash": "registry:npm/lodash#4.0.0+20160416211519"
