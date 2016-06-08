@@ -1,6 +1,24 @@
 import * as YO from 'yeoman-generator';
 import * as _ from 'lodash';
-const fs = require('fs');
+import * as fs from 'fs';
+
+
+export enum Generators {
+    config,
+    init,
+    component,
+    componentsIndex,
+    container,
+    containersIndex,
+    theme,
+    sync,
+    webpack,
+    storybook,
+    stories,
+    componentTheme,
+    componentThemeIndex,
+    initStorybook
+}
 
 interface VSCodeTaskConfig {
     taskName: string,
@@ -16,6 +34,14 @@ interface VSCodeTasksConfig {
     tasks: VSCodeTaskConfig[];
 }
 
+interface NodePackageConfig {
+    name: string,
+    main: string,
+    scripts: { [name: string]: string },
+    dependencies: { [name: string]: string },
+    devDependencies: { [name: string]: string }
+}
+
 var extend = _.merge;
 
 export enum Features {
@@ -23,7 +49,8 @@ export enum Features {
     webpack = 2,
     typings = 3,
     vscode = 4,
-    router = 5
+    router = 5,
+    storybook = 6
 }
 
 export enum ReduxFeatures {
@@ -101,11 +128,11 @@ class GeneratorSettings {
     }
 
     get themes(): string[] {
-        return this.config.get('themes');
+        return _.uniq(this.config.get('themes') as string[] || []);
     }
 
     set themes(value: string[]) {
-        this.config.set('themes', value);
+        this.config.set('themes', _.uniq(value));
     }
 
     get initialized(): boolean {
@@ -125,18 +152,39 @@ export abstract class BaseGenerator extends YO.Base {
         return this._settings;
     }
 
-    _writePackage() {
+    public ask(prompts: YO.IPromptOptions[]) {
+        return new Promise<any>((resolve, reject) => {
+            let resolved = false;
+            let tmp: any = super.prompt(prompts, (answers) => {
+                if (!resolved) {
+                    resolved = true;
+                    resolve(answers);
+                }
+            });
 
-        const currentPkg = this.fs.readJSON(this.destinationPath('package.json'), {});
-
-        var pkg = extend({
-            name: _.kebabCase(this.appname),
-            main: `${this.settings.bin}/main.js`,
-            scripts: {}
-        }, currentPkg);
-
-        this.fs.writeJSON(this.destinationPath('package.json'), pkg);
+            if (tmp != null) { // fallback                
+                tmp.then(answers => {
+                    if (!resolved) {
+                        resolved = true;
+                        resolve(answers);
+                    }
+                }, error => reject(error));
+            }
+        })
     }
+
+    // _writePackage() {
+
+    //     const currentPkg = this.fs.readJSON(this.destinationPath('package.json'), {});
+
+    //     var pkg = extend({
+    //         name: _.kebabCase(this.appname),
+    //         main: `${this.settings.bin}/main.js`,
+    //         scripts: {}
+    //     }, currentPkg);
+
+    //     this.fs.writeJSON(this.destinationPath('package.json'), pkg);
+    // }
 
     writePackageScript(name: string, script: string) {
         const currentPkg: any = this.fs.readJSON(this.destinationPath('package.json'), { scripts: {} });
@@ -148,127 +196,132 @@ export abstract class BaseGenerator extends YO.Base {
         this.fs.writeJSON(this.destinationPath('package.json'), currentPkg);
     }
 
-    _writeTsConfig() {
+    // _writeTsConfig() {
 
-        var currentPkg = this.fs.readJSON(this.destinationPath('tsconfig.json'), {});
+    //     var currentPkg = this.fs.readJSON(this.destinationPath('tsconfig.json'), {});
 
-        var pkg = extend(currentPkg, {
-            compilerOptions: {
-                target: 'es6',
-                module: "commonjs",
-                moduleResolution: "node",
-                jsx: "react",
-                listFiles: false,
-                isolatedModules: false,
-                experimentalDecorators: true,
-                emitDecoratorMetadata: true,
-                declaration: false,
-                noImplicitAny: false,
-                removeComments: false,
-                noLib: false,
-                preserveConstEnums: true,
-                suppressImplicitAnyIndexErrors: true,
-                outDir: this.settings.bin,
-                inlineSourceMap: false,
-                inlineSources: false,
-                sourceMap: true
-            },
-            filesGlob: [
-                `${this.settings.src}/**/*.d.ts`,
-                `${this.settings.src}/**/*.ts`,
-                `${this.settings.src}/**/*.tsx`,
-                "typings/index.d.ts"
-            ],
-            exclude: [
-                "node_modules",
-                "jspm"
-            ]
-        });
+    //     var pkg = extend(currentPkg, {
+    //         compilerOptions: {
+    //             target: 'es6',
+    //             module: "commonjs",
+    //             moduleResolution: "node",
+    //             jsx: "react",
+    //             listFiles: false,
+    //             isolatedModules: false,
+    //             experimentalDecorators: true,
+    //             emitDecoratorMetadata: true,
+    //             declaration: false,
+    //             noImplicitAny: false,
+    //             removeComments: false,
+    //             noLib: false,
+    //             preserveConstEnums: true,
+    //             suppressImplicitAnyIndexErrors: true,
+    //             outDir: this.settings.bin,
+    //             inlineSourceMap: false,
+    //             inlineSources: false,
+    //             sourceMap: true
+    //         },
+    //         filesGlob: [
+    //             `${this.settings.src}/**/*.d.ts`,
+    //             `${this.settings.src}/**/*.ts`,
+    //             `${this.settings.src}/**/*.tsx`,
+    //             "typings/index.d.ts"
+    //         ],
+    //         exclude: [
+    //             "node_modules",
+    //             "jspm"
+    //         ]
+    //     });
 
-        this.fs.writeJSON(this.destinationPath('tsconfig.json'), pkg);
+    //     this.fs.writeJSON(this.destinationPath('tsconfig.json'), pkg);
+    // }
+
+    // async _writeApp() {
+    //     return this.copyTpl(
+    //         this.templatePath('app.tsx.ejs'),
+    //         this.destinationPath(`${this.settings.src}/app.tsx`),
+    //         {
+    //             appname: this.appname
+    //         }
+    //     );
+    // }
+
+    // async _writeComponents() {
+    //     return this.copyTpl(
+    //         this.templatePath('components/index.ts.ejs'),
+    //         this.destinationPath(`${this.settings.src}/components/index.ts`),
+    //         {
+    //             appname: this.appname
+    //         }
+    //     );
+    // }
+
+    // async _writeContainers() {
+    //     return this.copyTpl(
+    //         this.templatePath('containers/index.ts.ejs'),
+    //         this.destinationPath(this.settings.src, `containers`, `index.ts`),
+    //         {
+    //             appname: this.appname
+    //         }
+    //     );
+    // }
+
+    // async _writeComponent(name) {
+
+    //     return this.copyTpl(
+    //         this.templatePath('component.tsx.ejs'),
+    //         this.destinationPath(this.settings.src, `components`, name, `index.tsx`),
+    //         {
+    //             name: name
+    //         }
+    //     )
+    // }
+
+    protected async copyTpl(from: string, to: string, context: Object) {
+        this.fs.copyTpl(from, to, context);
+        return this.writeFiles();
     }
 
-    _writeApp() {
-        this.fs.copyTpl(
-            this.templatePath('app.tsx.ejs'),
-            this.destinationPath(`${this.settings.src}/app.tsx`),
-            {
-                appname: this.appname
-            }
-        );
-    }
+    // async _writeThemes(component) {
 
-    _writeComponents() {
+    //     const themes = this.config.get('themes') || [];
 
-        this.fs.copyTpl(
-            this.templatePath('components/index.ts.ejs'),
-            this.destinationPath(`${this.settings.src}/components/index.ts`),
-            {
-                appname: this.appname
-            }
-        );
-    }
+    //     await this.copyTpl(
+    //         this.templatePath('theme.scss.ejs'),
+    //         this.destinationPath(this.settings.src, `components/${component}/_theme.scss`),
+    //         {
+    //             theme: 'default',
+    //             component: component
+    //         }
+    //     );
 
-    _writeContainers() {
+    //     for (var index = 0; index < themes.length; index++) {
+    //         var theme = themes[index];
 
-        this.fs.copyTpl(
-            this.templatePath('containers/index.ts.ejs'),
-            this.destinationPath(this.settings.src, `containers`, `index.ts`),
-            {
-                appname: this.appname
-            }
-        );
-    }
+    //         await this.copyTpl(
+    //             this.templatePath('theme.scss.ejs'),
+    //             this.destinationPath(this.settings.src, `components/${component}/_theme-${theme}.scss`),
+    //             {
+    //                 theme: theme,
+    //                 component: component
+    //             }
+    //         );
+    //     }
 
-    _writeComponent(name) {
+    //     await this._writeComponentThemesIndex(component, themes);
 
-        this.fs.copyTpl(
-            this.templatePath('component.tsx.ejs'),
-            this.destinationPath(this.settings.src, `components`, name, `index.tsx`),
-            {
-                name: name
-            }
-        )
-    }
+    //     await this.copyTpl(
+    //         this.templatePath('style.d.ts.ejs'),
+    //         this.destinationPath(this.settings.src, `components/${component}/style.d.ts`),
+    //         {
+    //             name: component
+    //         }
+    //     );
+    // }
 
-    _writeThemes(component) {
+    async _writeComponentThemesIndex(component: string, themes: string[]) {
 
-        const themes = this.config.get('themes') || [];
-
-        this.fs.copyTpl(
-            this.templatePath('theme.scss.ejs'),
-            this.destinationPath(this.settings.src, `components/${component}/_theme.scss`),
-            {
-                theme: 'default',
-                component: component
-            }
-        );
-
-        themes.forEach(theme => {
-            this.fs.copyTpl(
-                this.templatePath('theme.scss.ejs'),
-                this.destinationPath(this.settings.src, `components/${component}/_theme-${theme}.scss`),
-                {
-                    theme: theme,
-                    component: component
-                }
-            );
-        });
-
-        this._writeComponentThemesIndex(component, themes);
-
-        this.fs.copyTpl(
-            this.templatePath('style.d.ts.ejs'),
-            this.destinationPath(this.settings.src, `components/${component}/style.d.ts`),
-            {
-                name: component
-            }
-        );
-    }
-
-    _writeComponentThemesIndex(component: string, themes: string[]) {
-
-        this.fs.copyTpl(
+        return this.copyTpl(
             this.templatePath('../../component/templates/style.scss.ejs'),
             this.destinationPath(this.settings.src, `components/${component}/style.scss`),
             {
@@ -277,35 +330,39 @@ export abstract class BaseGenerator extends YO.Base {
         );
     }
 
-    _writeContainer(name: string) {
-        this.fs.copyTpl(
-            this.templatePath('container.tsx.ejs'),
-            this.destinationPath(this.settings.src, `containers/${name}.tsx`),
-            { name }
-        );
-    }
+    // async _writeContainer(name: string) {
+    //     return this.copyTpl(
+    //         this.templatePath('container.tsx.ejs'),
+    //         this.destinationPath(this.settings.src, `containers/${name}.tsx`),
+    //         { name }
+    //     );
+    // }
 
-    _writeComponentsIndex(components: string[]) {
+    // async _writeComponentsIndex(components: string[]) {
 
-        this.fs.copyTpl(
-            this.templatePath('index.ts.ejs'),
-            this.destinationPath(this.settings.src, 'components/index.ts'),
-            {
-                components: components.sort()
-            }
-        );
-    }
+    //     return this.noConflict(() => {
+    //         this.fs.copyTpl(
+    //             this.templatePath('index.ts.ejs'),
+    //             this.destinationPath(this.settings.src, 'components/index.ts'),
+    //             {
+    //                 components: components.sort()
+    //             }
+    //         );
+    //     });
+    // }
 
-    _writeContainersIndex(containers: string[]) {
+    async _writeContainersIndex(containers: string[]) {
         containers = containers.sort();
 
-        this.fs.copyTpl(
-            this.templatePath('index.ts.ejs'),
-            this.destinationPath(this.settings.src, 'containers/index.ts'),
-            {
-                containers: containers.sort()
-            }
-        );
+        return this.noConflict(() => {
+            this.fs.copyTpl(
+                this.templatePath('index.ts.ejs'),
+                this.destinationPath(this.settings.src, 'containers/index.ts'),
+                {
+                    containers: containers.sort()
+                }
+            );
+        });
     }
 
     _writeTheme(theme: string, components: string[] = this.getComponents()) {
@@ -338,18 +395,21 @@ export abstract class BaseGenerator extends YO.Base {
         }
     }
 
+    get componentsPath() {
+        return this.destinationPath(this.settings.src, 'components');
+    }
+
     getComponents(): string[] {
-        const componentsPath = this.destinationPath(this.settings.src, 'components');
 
         try {
-            if (!fs.statSync(componentsPath).isDirectory())
+            if (!fs.statSync(this.componentsPath).isDirectory())
                 return [];
         }
         catch (e) {
             return [];
         }
 
-        return _.filter(fs.readdirSync(componentsPath) as string[], filename => this.isComponentDirectory(filename, componentsPath));
+        return _.filter(fs.readdirSync(this.componentsPath) as string[], filename => this.isComponentDirectory(filename, this.componentsPath));
     }
 
     private isContainerFile(filename, containersPath, layout?) {
@@ -398,6 +458,51 @@ export abstract class BaseGenerator extends YO.Base {
         currentPkg.tasks = _.map(tasks, (task, taskName) => ({ taskName, args: task.args }));
 
         this.fs.writeJSON(this.destinationPath('.vscode', 'tasks.json'), currentPkg);
+    }
+
+    public npmInstall(packages: string[], options?: any, cb?: Function) {
+
+        var currentPkg = this.fs.readJSON(this.destinationPath('package.json'), {}) as NodePackageConfig;
+
+        if (options.save && currentPkg.dependencies) {
+            _.remove(packages, name => currentPkg.dependencies[name] != null);
+        }
+
+        if (options.saveDev && currentPkg.devDependencies) {
+            _.remove(packages, name => currentPkg.devDependencies[name] != null);
+        }
+
+        if (packages.length > 0) {
+            super.npmInstall(packages, options, cb);
+        }
+    }
+
+    protected writeFiles() {
+        return new Promise((resolve, reject) => {
+            (this as any)._writeFiles(() => resolve());
+        });
+    }
+
+    protected async noConflict(action: () => void) {
+        await this.writeFiles();
+
+        //this.log('no conflict: on');
+
+        this.conflicter.force = true;
+
+        try {
+            action();
+        }
+        finally {
+            await this.writeFiles();
+            this.conflicter.force = false;
+            //this.log('no conflict: off');
+        }
+    }
+
+    protected exec(subgenerator: Generators, args?: string[], options?: Object) {
+        let generatorName = Generators[subgenerator];
+        this.composeWith('react-typescript:' + _.kebabCase(generatorName), { args, options });
     }
 }
 

@@ -1,11 +1,16 @@
-import { BaseGenerator, Features, CssPreprocessor, ReduxFeatures } from '../base';
+import { BaseGenerator, Features, CssPreprocessor, ReduxFeatures, Generators } from '../base';
+import { extend, kebabCase } from 'lodash';
 
 export = class extends BaseGenerator {
 
     /* Your initialization methods (checking current project state, getting configs, etc) */
     public initializing() {
         if (this.settings.hasFeature(Features.webpack)) {
-            this.composeWith('react-typescript:webpack', {});
+            this.exec(Generators.webpack);
+        }
+
+        if (this.settings.hasFeature(Features.storybook)) {
+            this.exec(Generators.initStorybook);
         }
     }
 
@@ -16,20 +21,74 @@ export = class extends BaseGenerator {
     public configuring() { }
 
     /* Where you write the generator specific files (routes, controllers, etc) */
-    public writing() {
-        this._writePackage();
-        this._writeTsConfig();
-        this._writeApp();
-        this._writeComponents();
-        this._writeContainers();
+    public async writing() {
+        const currentPkg = this.fs.readJSON(this.destinationPath('package.json'), {});
 
-        this.writePackageScript('build', `tsc -p .`);
-        this.writePackageScript('start', `light-http -d ${this.settings.bin}`);
+        var pkg = extend({
+            name: kebabCase(this.appname),
+            main: `${this.settings.bin}/main.js`,
+            scripts: {
+                build: `tsc -p .`,
+                start: `light-http -d ${this.settings.bin}`
+            }
+        }, currentPkg);
+
+        this.fs.writeJSON(this.destinationPath('package.json'), pkg);
+
+        var tsconfig = this.fs.readJSON(this.destinationPath('tsconfig.json'), {});
+
+        tsconfig = extend(tsconfig, {
+            compilerOptions: {
+                target: 'es6',
+                module: "commonjs",
+                moduleResolution: "node",
+                jsx: "react",
+                listFiles: false,
+                isolatedModules: false,
+                experimentalDecorators: true,
+                emitDecoratorMetadata: true,
+                declaration: false,
+                noImplicitAny: false,
+                removeComments: false,
+                noLib: false,
+                preserveConstEnums: true,
+                suppressImplicitAnyIndexErrors: true,
+                outDir: this.settings.bin,
+                inlineSourceMap: false,
+                inlineSources: false,
+                sourceMap: true
+            },
+            filesGlob: [
+                `${this.settings.src}/**/*.d.ts`,
+                `${this.settings.src}/**/*.ts`,
+                `${this.settings.src}/**/*.tsx`,
+                "typings/index.d.ts"
+            ],
+            exclude: [
+                "node_modules",
+                "jspm"
+            ]
+        });
+
+        this.fs.writeJSON(this.destinationPath('tsconfig.json'), tsconfig);
+
+        await this.copyTpl(
+            this.templatePath('app.tsx.ejs'),
+            this.destinationPath(`${this.settings.src}/app.tsx`),
+            {
+                appname: this.appname
+            }
+        );
 
         if (this.settings.hasFeature(Features.vscode)) {
             this.writeVSCodeTask('build');
             this.writeVSCodeTask('start');
         }
+
+        await this.writeFiles();
+
+        this.exec(Generators.componentsIndex);
+        this.exec(Generators.containersIndex);
     }
 
     /* Where installation are run (npm, bower) */

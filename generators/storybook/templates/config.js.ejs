@@ -1,0 +1,9 @@
+import { configure } from '@kadira/storybook';
+
+
+function loadStories() {
+    <% stories.forEach(function(story){ %>
+    require('<%= story %>');<% }); %>
+}
+
+configure(loadStories, module);

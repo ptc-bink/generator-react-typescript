@@ -1,4 +1,8 @@
-import BaseGenerator from '../base';
+import { BaseGenerator, Features, Generators } from '../base';
+import { accentOn } from '../utils';
+
+const fs = require('fs');
+const _ = require('lodash');
 
 export = class extends BaseGenerator {
 
@@ -9,7 +13,7 @@ export = class extends BaseGenerator {
         this.argument('name', { type: String, required: false, desc: 'theme name' });
     }
 
-    prompting() {
+    prompting() { 
         var prompts = [
             {
                 type: 'input',
@@ -20,22 +24,22 @@ export = class extends BaseGenerator {
             }
         ];
 
-        return this.prompt(prompts).then((answers) => {
+        return this.ask(prompts).then((answers) => {
             this.name = answers.name || this.name;
         });
     }
 
-    /* Saving configurations and configure the project (creating .editorconfig files and other metadata files) */
     configuring() {
         this.settings.themes = this.settings.themes.concat([this.name]);
     }
 
-    writing() {
-        super._writeTheme(this.name);
+    async writing() {
+        
     }
 
     /* Called last, cleanup, say good bye, etc */
     end() {
 
     }
+
 };

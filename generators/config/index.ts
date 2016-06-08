@@ -1,5 +1,7 @@
 import { BaseGenerator, Features, CssPreprocessor, ReduxFeatures } from '../base';
 
+import { accentOn } from '../utils';
+
 export = class extends BaseGenerator {
     /* Where you prompt users for options (where you'd call this.prompt()) */
     prompting() {
@@ -28,11 +30,12 @@ export = class extends BaseGenerator {
                 message: 'Select additional features:',
                 store: true,
                 choices: [
-                    { value: Features.redux, short: 'Redux', name: 'Redux - state management' },
-                    { value: Features.router, short: 'React Router', name: 'React Router' },
-                    { value: Features.webpack, short: 'Webpack', name: 'Webpack - build tool' },
-                    { value: Features.typings, short: 'Typings', name: 'Typings - essential Typescript definitions' },
-                    { value: Features.vscode, short: 'VSCode', name: 'VScode - settings for best Typescript IDE' }
+                    { value: Features.redux, short: 'Redux', name: `${accentOn(`Redux`)} - state management` },
+                    { value: Features.router, short: 'React Router', name: `React ${accentOn(`Router`)}` },
+                    { value: Features.webpack, short: 'Webpack', name: `${accentOn(`Webpack`)} - build tool` },
+                    { value: Features.typings, short: 'Typings', name: `${accentOn(`Typings`)} - essential Typescript definitions` },
+                    { value: Features.vscode, short: 'VSCode', name: `${accentOn(`VScode`)} - settings for best Typescript IDE` },
+                    { value: Features.storybook, short: 'Storybook', name: `React ${accentOn(`Storybook`)} - develop and design React UI components without running your app` }
                 ],
                 default: this.settings.features
             }, {
@@ -53,15 +56,16 @@ export = class extends BaseGenerator {
                 store: true,
                 choices: [
                     { value: ReduxFeatures.logger, short: 'logger', name: 'Redux logger' },
-                    { value: ReduxFeatures.devtools, short: 'devtools', name: 'Redux devtools' },
+                    { value: ReduxFeatures.devtools, short: 'devtools', name: 'Redux DevTools' },
                     { value: ReduxFeatures.thunk, short: 'thunk', name: 'Redux Thunk' },
                     { value: ReduxFeatures.saga, short: 'saga', name: 'Redux Saga' }
                 ],
-                default: this.settings.redux
+                default: this.settings.redux || [],
+                when: (answers) => answers.features.indexOf(Features.redux) >= 0
             }
         ];
 
-        return this.prompt(prompts).then((answers) => {
+        return this.ask(prompts).then((answers) => {
             //this.settings.name = answers.name;
             this.settings.src = answers.src;
             this.settings.bin = answers.bin;

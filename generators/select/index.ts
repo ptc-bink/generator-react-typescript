@@ -1,16 +1,7 @@
-import { BaseGenerator, Features, CssPreprocessor, ReduxFeatures } from '../base';
+import { BaseGenerator, Features, CssPreprocessor, ReduxFeatures, Generators } from '../base';
 
 var inquirer = require('inquirer');
 
-enum Generators {
-    config,
-    init,
-    component,
-    container,
-    theme,
-    sync,
-    webpack
-}
 
 export = class extends BaseGenerator {
 
@@ -24,9 +15,10 @@ export = class extends BaseGenerator {
         if (!this.settings.initialized) {
             choices = [
                 { value: Generators.init, short: 'init', name: `Generate a React Typescript project structure` },
-                { value: Generators.webpack, short: 'webpack', name: `Generate a Webpack config file` },
                 new inquirer.Separator(),
-                { value: Generators.config, short: 'config', name: `Change generator settings` },
+                { value: Generators.webpack, short: 'webpack', name: `Generate a Webpack config file` },
+                { value: Generators.storybook, short: 'storybook', name: `Generate a React storybook config` },                
+                { value: Generators.config, short: 'config', name: `Change generator settings` }
             ]
         }
         else {
@@ -48,7 +40,7 @@ export = class extends BaseGenerator {
             choices: choices
         }];
 
-        return this.prompt(prompts).then((answers) => {
+        return this.ask(prompts).then((answers) => {
             this.generator = answers.generator;
 
             switch (this.generator) {
@@ -73,6 +65,9 @@ export = class extends BaseGenerator {
                 case Generators.webpack:
                     this.composeWith('react-typescript:webpack', {});
                     break;
+                case Generators.storybook:
+                    this.composeWith('react-typescript:storybook', {});
+                    break;                
             }
         });
     }

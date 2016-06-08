@@ -1,2 +1,4 @@
 node_modules
+typings
 generators/**/*.js
+generators/**/*.js.map

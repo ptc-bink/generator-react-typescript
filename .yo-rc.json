@@ -1,3 +1,5 @@
 {
-  "generator-react-typescript": {}
+  "generator-react-typescript": {
+    "src": "src"
+  }
 }

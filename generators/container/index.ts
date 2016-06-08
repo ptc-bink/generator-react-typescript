@@ -1,4 +1,4 @@
-import BaseGenerator from '../base';
+import { BaseGenerator, Generators } from '../base';
 
 export = class extends BaseGenerator {
 
@@ -20,14 +20,19 @@ export = class extends BaseGenerator {
             }
         ];
 
-        return this.prompt(prompts).then((answers) => {
+        return this.ask(prompts).then((answers) => {
             this.name = answers.name || this.name;
         });
     }
 
-    writing() {
-        super._writeContainer(this.name);
-        super._writeContainersIndex(super.getContainers().concat([this.name]));
+    async writing() {
+        await this.copyTpl(
+            this.templatePath('container.tsx.ejs'),
+            this.destinationPath(this.settings.src, 'containers', `${name}.tsx`),
+            { name: this.name }
+        );
+
+        this.exec(Generators.containersIndex);
     }
 
     /* Called last, cleanup, say good bye, etc */

@@ -1,8 +1,16 @@
 import { BaseGenerator, Features, CssPreprocessor, ReduxFeatures } from '../base';
 
-export = class extends BaseGenerator {
+class WebPackGeneratorBase extends BaseGenerator {
+    get cssModules(): boolean {
+        return this.config.get('cssModules');
+    }
 
-    private cssModules: boolean;
+    set cssModules(value: boolean) {
+        this.config.set('cssModules', value);
+    }
+}
+
+export = class WebPackGenerator extends WebPackGeneratorBase {
 
     /* Where you prompt users for options (where you'd call this.prompt()) */
     public prompting() {
@@ -14,7 +22,7 @@ export = class extends BaseGenerator {
             store: true
         }];
 
-        return this.prompt(prompts).then((answers) => {
+        return this.ask(prompts).then((answers) => {
             this.cssModules = answers.cssModules;
         });
     }

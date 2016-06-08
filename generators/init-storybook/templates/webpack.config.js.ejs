@@ -1,0 +1,24 @@
+const path = require('path');
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+
+module.exports = {
+  plugins: [
+    new ExtractTextPlugin("[name].css")
+  ],
+  resolve: {
+        extensions: [ '', '.ts', '.tsx', '.js', '.jsx', '.scss', '.css' ],
+  },
+  module: {
+    loaders: [
+            {
+                test: /\.tsx?$/,
+                loaders: ['react-hot', 'babel', 'ts'],                
+                exclude: /node_modules/
+            },
+            { test: /\.scss$/, loader: "style!css?modules&sourceMap!resolve-url!sass?sourceMap" },  
+            { test: /\.(eot|woff|woff2|ttf|svg)$/, loader: "file?name=fonts/[name].[ext]" },
+            { test: /\.mp3$/, loader: "file?name=sounds/[name].[ext]" },
+            { test: /\.html$/, loader: "file?name=[name].[ext]" }
+        ]
+  }
+}
